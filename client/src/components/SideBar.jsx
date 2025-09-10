@@ -10,7 +10,7 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 
 const navItems = [
-  { to: "/student/dashboard", label: "Dashboard", Icon: HouseIcon },
+  //   { to: "/student/dashboard", label: "Dashboard", Icon: HouseIcon },
   { to: "/student/dashboard/profile", label: "Profile", Icon: UserIcon },
   {
     to: "/student/dashboard/update-profile",
@@ -38,12 +38,15 @@ const SideBar = () => {
       {/* Top Nav Items */}
       <div className="px-4 py-6">
         <div className="space-y-2">
+          <div className="px-4 py-3 mb-6 border-b border-t border-gray-200 flex justify-center items-center">
+            <span className="text-gray-700">Welcome, {user?.name}</span>
+          </div>
           {navItems.map(({ to, label, Icon }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2 rounded-md transition-colors duration-300 ${
+                `flex items-center gap-3 px-4 py-3 rounded-md transition-colors duration-300 ${
                   isActive
                     ? "bg-gradient-to-r from-blue-600 to-indigo-700 text-white"
                     : "text-gray-700 hover:bg-gray-100"
