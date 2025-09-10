@@ -1,11 +1,13 @@
-const jwt = require("jsonwebtoken");
-// const User = require("../models/userModel");
-const { default: Student } = require("../models/studentModel");
-require("dotenv").config();
+import jwt from "jsonwebtoken";
+import User from "../models/userModel.js";
+import Student from "../models/studentModel.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const secretKey = process.env.JWT_SECRET;
 
-module.exports = async (req, res, next) => {
+const verifyToken = async (req, res, next) => {
   try {
     const bearer = req.headers.authorization; // "Bearer <token>"
     if (!bearer) return res.status(401).json({ message: "No token provided" });
@@ -13,7 +15,12 @@ module.exports = async (req, res, next) => {
     const token = bearer.split(" ")[1];
     const { userId } = jwt.verify(token, secretKey);
 
-    const user = await Student.findById(userId);
+    // Try to find user in User model first, then Student model
+    let user = await User.findById(userId);
+    if (!user) {
+      user = await Student.findById(userId);
+    }
+
     if (!user) return res.status(404).json({ message: "User not found" });
 
     req.user = user; // attach user for downstream
@@ -23,3 +30,5 @@ module.exports = async (req, res, next) => {
     res.status(401).json({ message: "Invalid or expired token" });
   }
 };
+
+export default verifyToken;

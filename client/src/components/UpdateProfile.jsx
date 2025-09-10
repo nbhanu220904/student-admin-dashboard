@@ -1,12 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
 
 const UpdateProfile = () => {
+  const { user, updateProfile } = useAuth();
   const [form, setForm] = useState({
-    username: "",
+    name: "",
     email: "",
     course: "",
   });
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setForm({
+        name: user.name || "",
+        email: user.email || "",
+        course: user.course || "",
+      });
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -15,24 +28,17 @@ const UpdateProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
+    setLoading(true);
 
-    try {
-      const res = await fetch("http://localhost:4000/auth/student/update", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(form),
-      });
+    const result = await updateProfile(form);
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Update failed");
-
+    if (result.success) {
       setMessage("Profile updated successfully ✅");
-    } catch (err) {
-      setMessage(`❌ ${err.message}`);
+    } else {
+      setMessage(`❌ ${result.error}`);
     }
+
+    setLoading(false);
   };
 
   return (
@@ -43,11 +49,12 @@ const UpdateProfile = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
-          name="username"
+          name="name"
           placeholder="Enter your name"
-          value={form.username}
+          value={form.name}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          required
+          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <input
           type="email"
@@ -55,7 +62,8 @@ const UpdateProfile = () => {
           placeholder="Enter your email"
           value={form.email}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          required
+          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <input
           type="text"
@@ -63,14 +71,15 @@ const UpdateProfile = () => {
           placeholder="Enter your course"
           value={form.course}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
         >
-          Save Changes
+          {loading ? "Updating..." : "Save Changes"}
         </button>
       </form>
     </div>

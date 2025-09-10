@@ -1,25 +1,40 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { HouseIcon, UserIcon, PencilIcon, LogOutIcon } from "lucide-react";
+import {
+  HouseIcon,
+  UserIcon,
+  PencilIcon,
+  LogOutIcon,
+  KeyIcon,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 const navItems = [
   { to: "/student/dashboard", label: "Dashboard", Icon: HouseIcon },
-  { to: "/student/profile", label: "Profile", Icon: UserIcon },
-  { to: "/student/update", label: "Update Profile", Icon: PencilIcon },
+  { to: "/student/dashboard/profile", label: "Profile", Icon: UserIcon },
+  {
+    to: "/student/dashboard/update-profile",
+    label: "Update Profile",
+    Icon: PencilIcon,
+  },
+  {
+    to: "/student/dashboard/password-change",
+    label: "Change Password",
+    Icon: KeyIcon,
+  },
 ];
 
 const SideBar = () => {
-  const student = JSON.parse(localStorage.getItem("student"));
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("student");
+    logout();
     navigate("/login");
   };
 
   return (
-    <div className="w-64 h-screen bg-white border-r border-gray-200 flex flex-col justify-between">
+    <div className="w-74 h-full bg-white border-r border-gray-200 flex flex-col justify-between">
       {/* Top Nav Items */}
       <div className="px-4 py-6">
         <div className="space-y-2">
@@ -51,9 +66,7 @@ const SideBar = () => {
             className="w-9 h-9 rounded-full"
           />
           <div>
-            <h1 className="text-sm font-medium">
-              {student?.username || "Student"}
-            </h1>
+            <h1 className="text-sm font-medium">{user?.name || "Student"}</h1>
             <p className="text-xs text-gray-500">Student</p>
           </div>
         </div>

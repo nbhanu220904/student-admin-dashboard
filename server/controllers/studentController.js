@@ -1,57 +1,154 @@
-// controllers/userController.js   (ES‑module)
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
 import Student from "../models/studentModel.js";
 
-dotenv.config();
-
-const secretKey = process.env.JWT_SECRET;
-if (!secretKey) throw new Error("JWT_SECRET not set in .env");
-
-export const registerStudent = async (req, res) => {
+// Get all students (Admin only)
+export const getAllStudents = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
-
-    if (await Student.findOne({ email }))
-      return res.status(400).json({ message: "Email already exists" });
-
-    const hashed = await bcrypt.hash(password, 10);
-    const user = await Student.create({ username, email, password: hashed });
-
-    const token = jwt.sign({ userId: user._id }, secretKey, {
-      expiresIn: "1h",
+    const students = await Student.find({}, { password: 0 }).sort({
+      createdAt: -1,
     });
-
-    res.status(201).json({
-      message: "User registered",
-      token,
-      user: { id: user._id, username, email },
+    res.json({
+      message: "Students retrieved successfully",
+      students,
     });
   } catch (err) {
-    console.error("Register error:", err);
+    console.error("Get all students error:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-export const loginStudent = async (req, res) => {
+// Get single student by ID (Admin only)
+export const getStudentById = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await Student.findOne({ email });
-    if (!user || !(await bcrypt.compare(password, user.password)))
-      return res.status(401).json({ message: "Invalid email or password" });
+    const { id } = req.params;
+    const student = await Student.findById(id, { password: 0 });
 
-    const token = jwt.sign({ userId: user._id }, secretKey, {
-      expiresIn: "1h",
-    });
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
 
     res.json({
-      message: "Login success",
-      token,
-      user: { id: user._id, username: user.username, email },
+      message: "Student retrieved successfully",
+      student,
     });
   } catch (err) {
-    console.error("Login error:", err);
+    console.error("Get student by ID error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Create new student (Admin only)
+export const createStudent = async (req, res) => {
+  try {
+    const { name, email, password, course } = req.body;
+
+    // Check if email already exists
+    const existingStudent = await Student.findOne({ email });
+    if (existingStudent) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create student
+    const student = await Student.create({
+      name,
+      email,
+      password: hashedPassword,
+      course: course || "MERN Bootcamp",
+    });
+
+    res.status(201).json({
+      message: "Student created successfully",
+      student: {
+        id: student._id,
+        name: student.name,
+        email: student.email,
+        course: student.course,
+        enrollmentDate: student.enrollmentDate,
+      },
+    });
+  } catch (err) {
+    console.error("Create student error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Update student (Admin only)
+export const updateStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email, course } = req.body;
+
+    // Check if email is being changed and if it already exists
+    if (email) {
+      const existingStudent = await Student.findOne({
+        email,
+        _id: { $ne: id },
+      });
+      if (existingStudent) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+    }
+
+    // Update student
+    const updatedStudent = await Student.findByIdAndUpdate(
+      id,
+      { name, email, course },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!updatedStudent) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    res.json({
+      message: "Student updated successfully",
+      student: updatedStudent,
+    });
+  } catch (err) {
+    console.error("Update student error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Delete student (Admin only)
+export const deleteStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedStudent = await Student.findByIdAndDelete(id);
+
+    if (!deletedStudent) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    res.json({
+      message: "Student deleted successfully",
+    });
+  } catch (err) {
+    console.error("Delete student error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Get student dashboard data
+export const getStudentDashboard = async (req, res) => {
+  try {
+    const student = req.user;
+    res.json({
+      message: "Student dashboard data retrieved successfully",
+      student: {
+        id: student._id,
+        name: student.name,
+        email: student.email,
+        course: student.course,
+        enrollmentDate: student.enrollmentDate,
+      },
+    });
+  } catch (err) {
+    console.error("Get student dashboard error:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

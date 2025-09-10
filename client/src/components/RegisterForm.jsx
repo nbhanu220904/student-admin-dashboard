@@ -1,35 +1,38 @@
 import React, { useState } from "react";
-import { API_URL } from "../APIURL";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const RegisterForm = () => {
   const [activeTab, setActiveTab] = useState("student");
-  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [course, setCourse] = useState("MERN Bootcamp");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const { register } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErr("");
-    try {
-      const res = await fetch(`${API_URL}/auth/student/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Registration failed");
-      // auto‑login after sign‑up
-      localStorage.setItem("studentLoginToken", json.token);
-      // onSuccess?.();
-      if (res.ok) window.location.href = "/student/dashboard";
-    } catch (e) {
-      setErr(e.message);
-    } finally {
-      setLoading(false);
+
+    const role = activeTab;
+    const result = await register(name, email, password, role, course);
+
+    if (result.success) {
+      // Redirect based on role
+      if (result.user.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/student/dashboard");
+      }
+    } else {
+      setErr(result.error);
     }
+
+    setLoading(false);
   };
 
   return (
@@ -83,17 +86,24 @@ const RegisterForm = () => {
               <input
                 type="text"
                 placeholder="Full Name"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
               <input
                 type="text"
-                placeholder="Student ID / Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                placeholder="Course (e.g., MERN Bootcamp)"
+                value={course}
+                onChange={(e) => setCourse(e.target.value)}
                 className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
               <input
@@ -115,7 +125,7 @@ const RegisterForm = () => {
               {err && <p className="text-red-600 text-sm">{err}</p>}
             </form>
           ) : (
-            <>
+            <form onSubmit={handleSubmit}>
               <h2 className="text-2xl font-bold text-green-700 mb-2">
                 Admin Registration
               </h2>
@@ -126,24 +136,38 @@ const RegisterForm = () => {
               <input
                 type="text"
                 placeholder="Full Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
                 className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
               />
               <input
-                type="text"
-                placeholder="Admin Username"
+                type="email"
+                placeholder="Admin Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
                 className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
               />
               <input
                 type="password"
                 placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                minLength={6}
+                required
                 className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
               />
 
-              <button className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition">
-                Register as Admin
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+              >
+                {loading ? "Registering as Admin..." : "Register as Admin"}
               </button>
               {err && <p className="text-red-600 text-sm">{err}</p>}
-            </>
+            </form>
           )}
 
           <p className="text-sm text-gray-600 text-center mt-6">

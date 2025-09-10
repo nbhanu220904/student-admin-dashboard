@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { API_URL } from "../APIURL";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const LoginForm = () => {
   const [activeTab, setActiveTab] = useState("student");
@@ -7,27 +8,29 @@ const LoginForm = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErr("");
-    try {
-      const res = await fetch(`${API_URL}/auth/student/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Login failed");
-      // save token + notify parent
-      localStorage.setItem("studentLoginToken", json.token);
-      if (res.ok) window.location.href = "/student/dashboard";
-    } catch (e) {
-      setErr(e.message);
-    } finally {
-      setLoading(false);
+
+    const role = activeTab;
+    const result = await login(email, password, role);
+
+    if (result.success) {
+      // Redirect based on role
+      if (result.user.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/student/dashboard");
+      }
+    } else {
+      setErr(result.error);
     }
+
+    setLoading(false);
   };
 
   return (
@@ -105,7 +108,7 @@ const LoginForm = () => {
               {err && <p className="text-red-600 text-sm">{err}</p>}
             </form>
           ) : (
-            <>
+            <form onSubmit={handleSubmit}>
               <h2 className="text-2xl font-bold text-green-700 mb-2">
                 Admin Login
               </h2>
@@ -114,8 +117,8 @@ const LoginForm = () => {
               </p>
 
               <input
-                type="text"
-                placeholder="Admin Username"
+                type="email"
+                placeholder="Admin Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -131,13 +134,14 @@ const LoginForm = () => {
               />
 
               <button
+                type="submit"
                 disabled={loading}
                 className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
               >
                 {loading ? "Logging in..." : "Login as Admin"}
               </button>
               {err && <p className="text-red-600 text-sm">{err}</p>}
-            </>
+            </form>
           )}
 
           <p className="text-sm text-gray-600 text-center mt-6">
