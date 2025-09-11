@@ -51,6 +51,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const endpoint =
         role === "admin" ? "/auth/admin/login" : "/auth/student/login";
+
+      console.log(endpoint);
+
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: {
@@ -58,6 +61,8 @@ export const AuthProvider = ({ children }) => {
         },
         body: JSON.stringify({ email, password }),
       });
+
+      //   console.log(response);
 
       const data = await response.json();
 

@@ -12,7 +12,17 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 // Middleware
-app.use(cors());
+
+const options = {
+  origin: [
+    'http://localhost:5173',
+    'https://student-admin-dashboard-nu.vercel.app',
+    process.env.client_url
+  ].filter(Boolean),
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+app.use(cors(options));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
