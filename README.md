@@ -1,95 +1,175 @@
-# Student Admin Dashboard
+# Student Admin Dashboard - Setup Guide
 
-A full-stack **Student Administration Dashboard** with separate **Student** and **Admin** panels, enabling profile management, update requests, and secure role-based authentication.
+## Prerequisites
 
-## Live Demo
-[Student Admin Dashboard](https://student-admin-dashboard-nu.vercel.app/login)
+- Node.js (v14 or higher)
+- MongoDB (local installation or MongoDB Atlas)
+- npm or yarn
 
-## Features
+## Backend Setup
 
-### Student Dashboard
-- View personal profile details.
-- Request updates to profile information.
-- Request password changes.
-- View status of submitted requests.
-
-### Admin Dashboard
-- View all registered users.
-- Approve or reject student requests for profile or password updates.
-- Real-time updates reflected in student dashboards.
-
-## Technologies Used
-- **Frontend:** React.js
-- **Backend:** Node.js, Express.js
-- **Database:** MongoDB
-- **Authentication:** JWT Token Authentication
-- **Other:** Axios for API calls, CSS for styling
-
-## Installation
-
-1. Clone the repository:
+1. Navigate to the server directory:
 
 ```bash
-git clone https://github.com/nbhanu220904/student-admin-dashboard.git
-Navigate to the project directory:
+cd server
+```
 
-bash
-Copy code
-cd student-admin-dashboard
-Install dependencies for both frontend and backend:
+2. Install dependencies:
 
-bash
-Copy code
+```bash
 npm install
-Set up environment variables (.env):
+```
 
-env
-Copy code
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret_key
-PORT=5000
-Start the backend server:
+3. Create a `.env` file in the server directory with the following variables:
 
-bash
-Copy code
-npm run server
-Start the frontend:
+```env
+PORT=4000
+MONGO_URI=mongodb://localhost:27017/student-admin-dashboard
+JWT_SECRET=your-super-secret-jwt-key-here-make-it-long-and-random
+```
 
-bash
-Copy code
+4. Start the server:
+
+```bash
 npm start
-Open http://localhost:3000 in your browser.
+```
 
-Project Structure
-bash
-Copy code
+The server will run on `http://localhost:4000`
+
+## Frontend Setup
+
+1. Navigate to the client directory:
+
+```bash
+cd client
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Start the development server:
+
+```bash
+npm run dev
+```
+
+The client will run on `http://localhost:5173`
+
+## Features Implemented
+
+### Authentication
+
+- ✅ JWT-based authentication
+- ✅ Password hashing with bcrypt
+- ✅ Role-based access control (Admin/Student)
+- ✅ Protected routes
+
+### Admin Features
+
+- ✅ View all students
+- ✅ Add new students
+- ✅ Edit student information
+- ✅ Delete students
+- ✅ Admin dashboard with full CRUD operations
+
+### Student Features
+
+- ✅ View own profile
+- ✅ Update profile information (name, email, course)
+- ✅ Student dashboard
+- ✅ Protected student routes
+
+### User Roles
+
+- **Admin**: Can manage all student records
+- **Student**: Can only view and update their own profile
+
+## API Endpoints
+
+### Authentication
+
+- `POST /auth/student/register` - Register new student
+- `POST /auth/admin/register` - Register new admin
+- `POST /auth/student/login` - Student login
+- `POST /auth/admin/login` - Admin login
+- `GET /auth/me` - Get current user profile
+- `PUT /auth/student/update` - Update student profile
+
+### Student Management (Admin only)
+
+- `GET /students` - Get all students
+- `GET /students/:id` - Get student by ID
+- `POST /students` - Create new student
+- `PUT /students/:id` - Update student
+- `DELETE /students/:id` - Delete student
+
+### Student Dashboard
+
+- `GET /students/dashboard` - Get student dashboard data
+
+## Database Models
+
+### Student Model
+
+- name (String, required)
+- email (String, required, unique)
+- password (String, required, hashed)
+- course (String, default: 'MERN Bootcamp')
+- enrollmentDate (Date, default: current date)
+
+### User Model (for Admins)
+
+- name (String, required)
+- email (String, required, unique)
+- password (String, required, hashed)
+- role (String, enum: ['admin', 'student'], default: 'student')
+
+## Testing the Application
+
+1. Start both server and client
+2. Navigate to `http://localhost:5173`
+3. Register as an admin or student
+4. Test the different features based on your role
+
+### Test Accounts
+
+You can create test accounts through the registration forms:
+
+- Admin: Register with admin role
+- Student: Register with student role
+
+## Project Structure
+
+```
 student-admin-dashboard/
-├─ backend/          # Node.js + Express backend
-├─ frontend/         # React.js frontend
-├─ README.md
-└─ package.json
-Usage
-Students can log in, update their details, and request password changes.
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/     # React components
+│   │   ├── contexts/       # React contexts (Auth)
+│   │   ├── pages/          # Page components
+│   │   └── ...
+├── server/                 # Node.js backend
+│   ├── controllers/        # Route controllers
+│   ├── middlewares/        # Custom middlewares
+│   ├── models/            # Database models
+│   ├── routes/            # API routes
+│   └── server.js          # Main server file
+└── SETUP.md               # This file
+```
 
-Admins can log in, view users, approve/reject requests, and manage dashboard data.
+## Security Features
 
-Future Enhancements
-Add email notifications for request status updates.
+- JWT token authentication
+- Password hashing with bcrypt
+- Role-based access control
+- Protected routes on both frontend and backend
+- Input validation and error handling
 
-Implement role-based dashboard analytics.
+## Technologies Used
 
-Improve UI/UX with Material-UI or Tailwind CSS.
-
-License
-This project is licensed under the MIT License.
-
-vbnet
-Copy code
-
-If you want, I can also **enhance it with screenshots, GIF demo, and badges** to make it more **visually appealing and professional** for GitHub. Do you want me to do that next?
-
-
-
-
-
-
+- **Backend**: Node.js, Express.js, MongoDB, Mongoose, JWT, bcrypt
+- **Frontend**: React, React Router, Tailwind CSS, Context API
+- **Database**: MongoDB
